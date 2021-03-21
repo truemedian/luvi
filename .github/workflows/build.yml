@@ -1,0 +1,232 @@
+name: Build Luvi Artifacts
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        type: [tiny, regular, regular-asm]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Find Version
+        run: |
+          git fetch --tags --prune --progress --no-recurse-submodules --depth=1 origin master
+
+          latest_tagged=$(git rev-list --tags --max-count=1)
+          version=$(git describe --tags "$latest_tagged")
+          if [ "${latest_tagged}" != "$(git rev-parse HEAD)" ]; then
+            version="${version}-dev"
+          fi
+
+          echo $version > VERSION
+
+      - name: Update System
+        run: |
+          sudo apt-get update
+          sudo apt-get -y upgrade
+
+      - name: Setup CCache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: ${{ runner.os }}-x86_64-${{ matrix.type }}-${{ github.sha }}
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get install -y build-essential cmake git
+
+          echo "/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH" > $GITHUB_PATH
+
+      - name: Configure
+        run: make ${{ matrix.type }}
+
+      - name: Build
+        run: make
+
+      - name: Test
+        run: make test
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: luvi-${{ matrix.type }}-${{ runner.os }}-x86_64
+          path: build/luvi
+
+  linux-multiarch:
+    name: Linux Multiarch
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [armv6, armv7]
+        type: [tiny, regular, regular-asm]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Find Version
+        run: |
+          git fetch --tags --prune --progress --no-recurse-submodules --depth=1 origin master
+
+          latest_tagged=$(git rev-list --tags --max-count=1)
+          version=$(git describe --tags "$latest_tagged")
+          if [ "${latest_tagged}" != "$(git rev-parse HEAD)" ]; then
+            version="${version}-dev"
+          fi
+
+          echo $version > VERSION
+
+      - name: Setup CCache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: multiarch-${{ matrix.arch }}-${{ matrix.type }}-${{ github.sha }}
+
+      - name: Build & Test
+        uses: uraimo/run-on-arch-action@v2.0.9
+        with:
+          arch: ${{ matrix.arch }}
+          distro: stretch
+
+          dockerRunArgs: |
+            --volume "${{ github.workspace }}/.ccache:/root/.ccache"
+
+          install: |
+            apt-get update -q -y && apt-get -y upgrade
+            apt-get install -q -y build-essential cmake git ccache
+
+            /usr/sbin/update-ccache-symlinks
+
+          run: |
+            export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+
+            make ${{ matrix.type }}
+            make
+            make test
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: luvi-${{ matrix.type }}-${{ runner.os }}-${{ matrix.arch }}
+          path: build/luvi
+
+  macos:
+    name: MacOS
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        type: [tiny, regular, regular-asm]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Find Version
+        run: |
+          git fetch --tags --prune --progress --no-recurse-submodules --depth=1 origin master
+
+          latest_tagged=$(git rev-list --tags --max-count=1)
+          version=$(git describe --tags "$latest_tagged")
+          if [ "${latest_tagged}" != "$(git rev-parse HEAD)" ]; then
+            version="${version}-dev"
+          fi
+
+          echo $version > VERSION
+
+      - name: Setup CCache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: ${{ runner.os }}-x86_64-${{ matrix.type }}-${{ github.sha }}
+
+      - name: Install Dependencies
+        run: |
+          echo "/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH" > $GITHUB_PATH
+
+      - name: Configure
+        run: make ${{ matrix.type }}
+
+      - name: Build
+        run: make
+
+      - name: Test
+        run: make test
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: luvi-${{ matrix.type }}-Darwin-x86_64
+          path: build/luvi
+
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        type: [regular, regular-asm, regular32, regular32-asm, tiny, tiny32]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Find Version
+        run: |
+          git fetch --tags --prune --progress --no-recurse-submodules --depth=1 origin master
+
+          $latest_tagged = (git rev-list --tags --max-count=1)
+          $version = (git describe --tags "$latest_tagged")
+          if ( "$latest_tagged" -ne "$(git rev-parse HEAD)" ) {
+            $version = "${version}-dev"
+          }
+
+          Write-Output "$version" | Out-File -FilePath VERSION -Encoding utf8
+
+      - name: Cache Dependencies
+        uses: actions/cache@v2
+        id: cache
+        with:
+          path: C:\Program Files\NASM
+          key: ${{ runner.os }}-nasm
+
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: choco install NASM
+
+      - name: Setup NASM
+        shell: pwsh
+        run: |
+          Write-Output "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Configure
+        run: ./make.bat ${{ matrix.type }}
+
+      - name: Build
+        run: ./make.bat
+
+      - name: Test
+        run: ./make.bat test
+
+      - name: Upload Artifact
+        if: contains(matrix.type, '32') == false
+        uses: actions/upload-artifact@v2
+        with:
+          name: luvi-${{ matrix.type }}-Windows-x86_64.exe
+          path: luvi.exe
+
+      - name: Upload Artifact (i386)
+        if: contains(matrix.type, '32') == true
+        uses: actions/upload-artifact@v2
+        with:
+          name: luvi-${{ matrix.type }}-Windows-i386.exe
+          path: luvi.exe
