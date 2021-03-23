@@ -1,8 +1,13 @@
 luvi
 ====
 
-[![Linux Build Status](https://travis-ci.org/luvit/luvi.svg?branch=master)](https://travis-ci.org/luvit/luvi)
-[![Windows Build status](https://ci.appveyor.com/api/projects/status/h643wg5hkwsnu0wd/branch/master?svg=true)](https://ci.appveyor.com/project/racker-buildbot/luvi/branch/master)
+[![Linux](https://github.com/truemedian/luvi/actions/workflows/test_linux.yml/badge.svg)](https://github.com/truemedian/luvi/actions/workflows/test_linux.yml)
+[![Linux ARM](https://github.com/truemedian/luvi/actions/workflows/test_linux_arm.yml/badge.svg)](https://github.com/truemedian/luvi/actions/workflows/test_linux_arm.yml)
+[![MacOS](https://github.com/truemedian/luvi/actions/workflows/test_macos.yml/badge.svg)](https://github.com/truemedian/luvi/actions/workflows/test_macos.yml)
+[![Windows](https://github.com/truemedian/luvi/actions/workflows/test_windows.yml/badge.svg)](https://github.com/truemedian/luvi/actions/workflows/test_windows.yml)
+
+<!-- [![Linux Build Status](https://travis-ci.org/luvit/luvi.svg?branch=master)](https://travis-ci.org/luvit/luvi) -->
+<!-- [![Windows Build status](https://ci.appveyor.com/api/projects/status/h643wg5hkwsnu0wd/branch/master?svg=true)](https://ci.appveyor.com/project/racker-buildbot/luvi/branch/master) -->
 [![Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/luvit/luvi.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/luvit/luvi/context:cpp)
 [![Total Alerts](https://img.shields.io/lgtm/alerts/g/luvit/luvi.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/luvit/luvi/alerts)
 
