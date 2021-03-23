@@ -1,0 +1,68 @@
+name: Windows
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        type: [regular, regular-asm, regular32, regular32-asm, tiny, tiny32]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Find Version
+        run: |
+          git fetch --tags --prune --progress --no-recurse-submodules --depth=1 origin master
+
+          $latest_tagged = (git rev-list --tags --max-count=1)
+          $version = (git describe --tags "$latest_tagged")
+          if ( "$latest_tagged" -ne "$(git rev-parse HEAD)" ) {
+            $version = "${version}-dev"
+          }
+
+          Write-Output "$version" | Out-File -FilePath VERSION -Encoding utf8
+
+      - name: Cache Dependencies
+        uses: actions/cache@v2
+        id: cache
+        with:
+          path: C:\Program Files\NASM
+          key: ${{ runner.os }}-nasm
+
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: choco install NASM
+
+      - name: Setup NASM
+        shell: pwsh
+        run: |
+          Write-Output "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Configure
+        run: ./make.bat ${{ matrix.type }}
+
+      - name: Build
+        run: ./make.bat
+
+      - name: Test
+        run: ./make.bat test
+
+      - name: Upload Artifact
+        if: contains(matrix.type, '32') == false
+        uses: actions/upload-artifact@v2
+        with:
+          name: luvi-${{ matrix.type }}-${{ runner.os }}-x86_64.exe
+          path: luvi.exe
+
+      - name: Upload Artifact (i386)
+        if: contains(matrix.type, '32') == true
+        uses: actions/upload-artifact@v2
+        with:
+          name: luvi-${{ matrix.type }}-${{ runner.os }}-i386.exe
+          path: luvi.exe

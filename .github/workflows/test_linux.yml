@@ -1,0 +1,44 @@
+name: Linux
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        type: [tiny, regular, regular-asm]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Find Version
+        run: |
+          git fetch --tags --prune --progress --no-recurse-submodules --depth=1 origin master
+
+          latest_tagged=$(git rev-list --tags --max-count=1)
+          version=$(git describe --tags "$latest_tagged")
+          if [ "${latest_tagged}" != "$(git rev-parse HEAD)" ]; then
+            version="${version}-dev"
+          fi
+
+          echo $version > VERSION
+
+      - name: Configure
+        run: make ${{ matrix.type }}
+
+      - name: Build
+        run: make
+
+      - name: Test
+        run: make test
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: luvi-${{ matrix.type }}-${{ runner.os }}-x86_64
+          path: build/luvi

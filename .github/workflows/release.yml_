@@ -96,6 +96,9 @@ jobs:
           arch: ${{ matrix.arch }}
           distro: stretch
 
+          setup: |
+            mkdir -p ${{ github.workspace }}/.ccache
+
           dockerRunArgs: |
             --volume "${{ github.workspace }}/.ccache:/root/.ccache"
 

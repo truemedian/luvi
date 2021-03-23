@@ -1,0 +1,66 @@
+name: Linux ARM
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  linux-multiarch:
+    name: Linux Multiarch
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [armv6, armv7]
+        type: [tiny, regular, regular-asm]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Find Version
+        run: |
+          git fetch --tags --prune --progress --no-recurse-submodules --depth=1 origin master
+
+          latest_tagged=$(git rev-list --tags --max-count=1)
+          version=$(git describe --tags "$latest_tagged")
+          if [ "${latest_tagged}" != "$(git rev-parse HEAD)" ]; then
+            version="${version}-dev"
+          fi
+
+          echo $version > VERSION
+
+      - name: Setup CCache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: multiarch-${{ matrix.arch }}-${{ matrix.type }}-${{ github.sha }}
+
+      - name: Build & Test
+        uses: uraimo/run-on-arch-action@v2.0.9
+        with:
+          arch: ${{ matrix.arch }}
+          distro: stretch
+
+          setup: |
+            mkdir -p ${{ github.workspace }}/.ccache
+
+          dockerRunArgs: |
+            --volume "${{ github.workspace }}/.ccache:/root/.ccache"
+
+          install: |
+            apt-get update -q -y
+            apt-get install -q -y build-essential cmake git ccache
+
+            /usr/sbin/update-ccache-symlinks
+
+          run: |
+            export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+
+            make ${{ matrix.type }}
+            make
+            make test
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: luvi-${{ matrix.type }}-${{ runner.os }}-${{ matrix.arch }}
+          path: build/luvi
