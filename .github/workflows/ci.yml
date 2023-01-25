@@ -2,85 +2,138 @@ name: CI
 
 on: [push, pull_request]
 
+concurrency: # Cancels pending runs when a PR gets updated.
+  group: ${{ github.head_ref || github.run_id }}-${{ github.actor }}
+  cancel-in-progress: true
+
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest, ubuntu-latest]
-        build_type: [tiny, regular-asm]
-        lua_engine: [LuaJIT, Lua]
-    env:
-      BUILD_TYPE: ${{ matrix.build_type }}
-      WITH_LUA_ENGINE: ${{ matrix.lua_engine }}
-
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-
-    - name: Configure
-      run: WITHOUT_AMALG=1 make ${BUILD_TYPE} WITH_LUA_ENGINE=${WITH_LUA_ENGINE}
-
-    - name: Build
-      run: make
-
-    - name: Test
-      run: make test
-
-  deploy-linux:
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: [build]
+  build-linux:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86_64, i686]
+        build_type: [tiny, regular]
+        lua_engine: [LuaJIT, Lua]
+        include:
+        - arch: x86_64
+          build_type: regular-asm
+          lua_engine: LuaJIT
+        - arch: x86_64
+          build_type: regular-asm
+          lua_engine: Lua
+
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
-    - name: Fetch
-      run: git fetch --unshallow --no-recurse-submodules
+      - name: Setup 32-bit
+        if: matrix.arch == 'i686'
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib g++-multilib
+      
+      - name: Pre-Configure
+        run: |
+          if [ "${{ matrix.arch }}" == "i686" ]; then
+            export ASMFLAGS="-m32"
+            export CFLAGS="-m32"
+            export CXXFLAGS="-m32"
+            export LDFLAGS="-m32"
+          fi
 
-    - name: Build
-      run: make linux-build
+      - name: Configure
+        run: make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }} WITHOUT_AMALG=1
 
-    - name: Github Release
-      id: create_release
-      uses: softprops/action-gh-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        files: |
-          luvi-regular-Linux_x86_64
-          luvi-tiny-Linux_x86_64
-          luvi-regular-Linux_i686
-          luvi-tiny-Linux_i686
-        draft: false
-        prerelease: false
+      - name: Build
+        run: make
 
-  deploy-macos:
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: [build]
+      - name: Test
+        run: make test
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: luvi-${{ matrix.build_type }}-Linux_${{ matrix.arch }}
+          path: build/luvi
+
+  build-macos:
     runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [tiny, regular, regular-asm]
+        lua_engine: [LuaJIT, Lua]
+
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
-    - name: Fetch
-      run: git fetch --unshallow --no-recurse-submodules
+      - name: Configure
+        run: make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }} WITHOUT_AMALG=1
 
-    - name: Build
-      run: make travis-publish
+      - name: Build
+        run: make
 
-    - name: Github Release
-      id: create_release
-      uses: softprops/action-gh-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        files: |
-          luvi-regular-Darwin_x86_64
-          luvi-tiny-Darwin_x86_64
-          luvi-src-*.tar.gz
-        draft: false
-        prerelease: false
+      - name: Test
+        run: make test
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: luvi-${{ matrix.build_type }}-Darwin_x86_64
+          path: build/luvi
+
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type:
+          [tiny, tiny32, regular, regular32, regular-asm, regular32-asm]
+        lua_engine: [LuaJIT, Lua]
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Cache Dependencies
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: C:\Program Files\NASM
+          key: ${{ runner.os }}-nasm
+
+      - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          choco install NASM
+
+      - name: Setup PATH
+        run: |
+          Write-Output "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+          if ("${{ matrix.build_type }}" -match "32") {
+            Write-Output "ARCH=ia32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          } else {
+            Write-Output "ARCH=amd64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          }
+
+      - name: Configure
+        run: ./make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }} WITHOUT_AMALG=1
+
+      - name: Build
+        run: ./make
+
+      - name: Test
+        run: ./make test
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: luvi-${{ matrix.build_type }}-Windows_${{ env.ARCH }}
+          path: |
+            build/Release/luvi.exe
+            build/Release/luvi.lib
+            build/Release/luvi_renamed.lib
