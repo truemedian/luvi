@@ -43,7 +43,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: luvi-Linux_x86_64-${{ matrix.build_type }}
+          name: luvi-Linux_x86_64-${{ matrix.lua_engine }}-${{ matrix.build_type }}
           path: build/luvi
 
   build-linux32:
@@ -82,7 +82,70 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: luvi-Linux_i686-${{ matrix.build_type }}
+          name: luvi-Linux_i686-${{ matrix.lua_engine }}-${{ matrix.build_type }}
+          path: build/luvi
+
+  build-linux-arm:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [armv6, armv7, aarch64]
+        build_type: [tiny, regular, regular-asm]
+        lua_engine: [LuaJIT, Lua]
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Reload Cache
+        uses: actions/cache@v3
+        with:
+          path: .ccache
+          key: ccache-Linux_${{ matrix.arch }}-${{ matrix.build_type}}-${{ matrix.lua_engine }}-${{ github.actor }}-${{ github.run_id }}
+          restore-keys: |
+              ccache-Linux_${{ matrix.arch }}-${{ matrix.build_type}}-${{ matrix.lua_engine }}-${{ github.actor }}-
+
+      - name: Prepare
+        run: |
+          sudo apt install -y ccache
+
+          export CCACHE_DIR=$PWD/.ccache
+          echo "CCACHE_DIR=$CCACHE_DIR" >> $GITHUB_ENV
+
+          ccache -z
+
+      - uses: uraimo/run-on-arch-action@v2
+        name: Build
+        with:
+          distro: stretch
+          arch: ${{ matrix.arch }}
+
+          dockerRunArgs: |
+            -v $PWD/.ccache:/.ccache
+          shell: /bin/bash
+          install: |
+            apt-get update -q -y
+            apt-get install -q -y build-essential perl git cmake ccache
+          run: |
+            export CCACHE_DIR=/.ccache
+
+            /usr/sbin/update-ccache-symlinks
+            export PATH="/usr/lib/ccache:$PATH"
+
+            make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }}
+            make
+            make test
+
+      - name: Report
+        run: |
+          ccache -s -v
+          ccache -X 9
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: luvi-Linux_${{ matrix.arch }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
           path: build/luvi
 
   build-macos:
@@ -109,7 +172,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: luvi-Darwin_x86_64-${{ matrix.build_type }}
+          name: luvi-Darwin_x86_64-${{ matrix.lua_engine }}-${{ matrix.build_type }}
           path: build/luvi
 
   build-windows:
@@ -159,7 +222,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: luvi-Windows_${{ env.ARCH }}-${{ matrix.build_type }}
+          name: luvi-Windows_${{ env.ARCH }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
           path: |
             build/Release/luvi.exe
             build/Release/luvi.lib

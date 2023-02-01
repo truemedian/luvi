@@ -26,8 +26,7 @@ else (WithSharedOpenSSL)
   else()
       set(OPENSSL_CONFIGURE_COMMAND ./config ${OPENSSL_CONFIG_OPTIONS})
 
-
-      set(OPENSSL_CONFIGURE_COMMAND env "ASMFLAGS=${CMAKE_ASM_FLAGS}" "CFLAGS=${CMAKE_C_FLAGS}" "CXXFLAGS=${CMAKE_CXX_FLAGS}" "LDFLAGS=${CMAKE_LINKER_FLAGS}" ${OPENSSL_CONFIGURE_COMMAND})
+      # Note: We don't pass any of the flags that are passed to cmake into openssl.
 
       if(DEFINED $ENV{MAKEFLAGS})
         set(OPENSSL_BUILD_COMMAND make $ENV{MAKEFLAGS})
@@ -46,7 +45,6 @@ else (WithSharedOpenSSL)
       CONFIGURE_COMMAND ${OPENSSL_CONFIGURE_COMMAND}
       INSTALL_COMMAND   ""
       TEST_COMMAND      ""
-      LOG_OUTPUT_ON_FAILURE ON
   )
 
   set(OPENSSL_DIR ${CMAKE_BINARY_DIR}/openssl/src/openssl)
