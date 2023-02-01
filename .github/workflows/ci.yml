@@ -12,50 +12,77 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        arch: [x86_64, i686]
-        build_type: [tiny, regular]
+        build_type: [tiny, regular, regular-asm]
         lua_engine: [LuaJIT, Lua]
-        include:
-        - arch: x86_64
-          build_type: regular-asm
-          lua_engine: LuaJIT
-        - arch: x86_64
-          build_type: regular-asm
-          lua_engine: Lua
 
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
 
-      - name: Setup 32-bit
-        if: matrix.arch == 'i686'
-        run: |
-          sudo dpkg --add-architecture i386
-          sudo apt-get update
-          sudo apt-get install -y gcc-multilib g++-multilib
-      
-      - name: Pre-Configure
-        run: |
-          if [ "${{ matrix.arch }}" == "i686" ]; then
-            export ASMFLAGS="-m32"
-            export CFLAGS="-m32"
-            export CXXFLAGS="-m32"
-            export LDFLAGS="-m32"
-          fi
+      - name: Prepare
+        run: chmod +x packaging/hbb && mkdir -p ~/.local/bin && mv packaging/hbb ~/.local/bin/hbb
 
       - name: Configure
-        run: make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }} WITHOUT_AMALG=1
+        shell: hbb {0}
+        run: |
+          CFLAGS=${CFLAGS//-fvisibility=hidden}
+          CFLAGS=${CFLAGS//-g}
+
+          make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }} WITHOUT_AMALG=1
 
       - name: Build
+        shell: hbb {0}
         run: make
 
       - name: Test
-        run: make test
+        shell: hbb {0}
+        run: |
+          make test
+          libcheck build/luvi
 
       - uses: actions/upload-artifact@v3
         with:
-          name: luvi-${{ matrix.build_type }}-Linux_${{ matrix.arch }}
+          name: luvi-${{ matrix.build_type }}-Linux_x86_64
+          path: build/luvi
+
+  build-linux32:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [tiny, regular]
+        lua_engine: [LuaJIT, Lua]
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Prepare
+        run: chmod +x packaging/hbb32 && mkdir -p ~/.local/bin && mv packaging/hbb32 ~/.local/bin/hbb32
+
+      - name: Configure
+        shell: hbb32 {0}
+        run: |
+          CFLAGS=${CFLAGS//-fvisibility=hidden}
+          CFLAGS=${CFLAGS//-g}
+
+          make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }} WITHOUT_AMALG=1
+
+      - name: Build
+        shell: hbb32 {0}
+        run: make
+
+      - name: Test
+        shell: hbb32 {0}
+        run: |
+          make test
+          libcheck build/luvi
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: luvi-${{ matrix.build_type }}-Linux_i686
           path: build/luvi
 
   build-macos:

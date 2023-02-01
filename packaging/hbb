@@ -1,0 +1,7 @@
+#!/bin/bash
+
+docker run -t \
+    -v `pwd`:/work \
+    -v $1:$1 \
+    phusion/holy-build-box-64:latest \
+    /hbb_exe/activate-exec bash -c "cd /work && source $1"
