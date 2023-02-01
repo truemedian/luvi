@@ -43,7 +43,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: luvi-${{ matrix.build_type }}-Linux_x86_64
+          name: luvi-Linux_x86_64-${{ matrix.build_type }}
           path: build/luvi
 
   build-linux32:
@@ -82,7 +82,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: luvi-${{ matrix.build_type }}-Linux_i686
+          name: luvi-Linux_i686-${{ matrix.build_type }}
           path: build/luvi
 
   build-macos:
@@ -109,7 +109,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: luvi-${{ matrix.build_type }}-Darwin_x86_64
+          name: luvi-Darwin_x86_64-${{ matrix.build_type }}
           path: build/luvi
 
   build-windows:
@@ -159,7 +159,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: luvi-${{ matrix.build_type }}-Windows_${{ env.ARCH }}
+          name: luvi-Windows_${{ env.ARCH }}-${{ matrix.build_type }}
           path: |
             build/Release/luvi.exe
             build/Release/luvi.lib
