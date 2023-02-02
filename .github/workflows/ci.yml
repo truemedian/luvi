@@ -206,10 +206,13 @@ jobs:
           Write-Output "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
           if ("${{ matrix.build_type }}" -match "32") {
-            Write-Output "ARCH=ia32" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            Write-Output "ARCH=i686" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           } else {
-            Write-Output "ARCH=amd64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            Write-Output "ARCH=x86_64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           }
+
+          $BUILD_TYPE = "${{ matrix.build_type }}" -replace "32", ""
+          Write-Output "BUILD_TYPE=$BUILD_TYPE" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Configure
         run: ./make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }} WITHOUT_AMALG=1
@@ -222,7 +225,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: luvi-Windows_${{ env.ARCH }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
+          name: luvi-Windows_${{ env.ARCH }}-${{ matrix.lua_engine }}-${{ env.BUILD_TYPE }}
           path: |
             build/Release/luvi.exe
             build/Release/luvi.lib
