@@ -4,8 +4,8 @@ if (WithSharedOpenSSL)
   message("OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
   message("OpenSSL libraries: ${OPENSSL_LIBRARIES}")
 
-  include_directories(${OPENSSL_INCLUDE_DIR})
-  link_directories(${OPENSSL_ROOT_DIR}/lib)
+  include_directories( ${OPENSSL_INCLUDE_DIR} )
+  link_directories( ${OPENSSL_ROOT_DIR}/lib )
   list(APPEND LIB_LIST ${OPENSSL_LIBRARIES})
 else (WithSharedOpenSSL)
   message("Enabling Static OpenSSL")
@@ -33,6 +33,10 @@ else (WithSharedOpenSSL)
       else()
         set(OPENSSL_BUILD_COMMAND make)
       endif()
+  endif()
+
+  if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
   endif()
 
   ExternalProject_Add(openssl

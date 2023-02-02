@@ -8,51 +8,17 @@ concurrency: # Cancels pending runs when a PR gets updated.
 
 jobs:
   build-linux:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
-        build_type: [tiny, regular, regular-asm]
-        lua_engine: [LuaJIT, Lua]
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-
-      - name: Prepare
-        run: chmod +x packaging/hbb && mkdir -p ~/.local/bin && mv packaging/hbb ~/.local/bin/hbb
-
-      - name: Configure
-        shell: hbb {0}
-        run: |
-          CFLAGS=${CFLAGS//-fvisibility=hidden}
-          CFLAGS=${CFLAGS//-g}
-
-          make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }} WITHOUT_AMALG=1
-
-      - name: Build
-        shell: hbb {0}
-        run: make
-
-      - name: Test
-        shell: hbb {0}
-        run: |
-          make test
-          libcheck build/luvi
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: luvi-Linux_x86_64-${{ matrix.lua_engine }}-${{ matrix.build_type }}
-          path: build/luvi
-
-  build-linux32:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
+        runner: [ubuntu-latest, macos-latest]
+        arch: [x86_64, i686]
         build_type: [tiny, regular]
         lua_engine: [LuaJIT, Lua]
+        exclude:
+        - runner: macos-latest
+          arch: i686
 
     steps:
       - uses: actions/checkout@v3
@@ -60,10 +26,13 @@ jobs:
           submodules: recursive
 
       - name: Prepare
-        run: chmod +x packaging/hbb32 && mkdir -p ~/.local/bin && mv packaging/hbb32 ~/.local/bin/hbb32
+        run: |
+          echo "target=$(uname -s)_${{ matrix.arch }}" >> $GITHUB_ENV
+
+          chmod +x packaging/hbb && sudo mv packaging/hbb /usr/local/bin/hbb
 
       - name: Configure
-        shell: hbb32 {0}
+        shell: hbb {0}
         run: |
           CFLAGS=${CFLAGS//-fvisibility=hidden}
           CFLAGS=${CFLAGS//-g}
@@ -71,18 +40,17 @@ jobs:
           make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }} WITHOUT_AMALG=1
 
       - name: Build
-        shell: hbb32 {0}
+        shell: hbb {0}
         run: make
 
       - name: Test
-        shell: hbb32 {0}
+        shell: hbb {0}
         run: |
           make test
-          libcheck build/luvi
 
       - uses: actions/upload-artifact@v3
         with:
-          name: luvi-Linux_i686-${{ matrix.lua_engine }}-${{ matrix.build_type }}
+          name: luvi-${{ env.target }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
           path: build/luvi
 
   build-linux-arm:
@@ -91,7 +59,7 @@ jobs:
       fail-fast: false
       matrix:
         arch: [armv6, armv7, aarch64]
-        build_type: [tiny, regular, regular-asm]
+        build_type: [tiny, regular]
         lua_engine: [LuaJIT, Lua]
 
     steps:
@@ -146,33 +114,6 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: luvi-Linux_${{ matrix.arch }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
-          path: build/luvi
-
-  build-macos:
-    runs-on: macos-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        build_type: [tiny, regular, regular-asm]
-        lua_engine: [LuaJIT, Lua]
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-
-      - name: Configure
-        run: make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }} WITHOUT_AMALG=1
-
-      - name: Build
-        run: make
-
-      - name: Test
-        run: make test
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: luvi-Darwin_x86_64-${{ matrix.lua_engine }}-${{ matrix.build_type }}
           path: build/luvi
 
   build-windows:
