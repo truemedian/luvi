@@ -31,6 +31,8 @@ WITH_SHARED_ZLIB ?= OFF
 PREFIX ?= /usr/local
 BINPREFIX ?= ${PREFIX}/bin
 
+BUILD_PREFIX ?= build
+
 # NPROCS: Number of processors to use for parallel builds, passed as -jN to make
 # GENERATOR: CMake generator to use, passed as -G"GENERATOR" to cmake
 # PREFIX: Where to install luvi, defaults to /usr/local
@@ -83,25 +85,25 @@ endif
 
 # This does the actual build and configures as default flavor is there is no build folder.
 luvi: build
-	cmake --build build -- ${BUILD_OPTIONS} ${EXTRA_BUILD_OPTIONS}
+	cmake --build ${BUILD_PREFIX} -- ${BUILD_OPTIONS} ${EXTRA_BUILD_OPTIONS}
 
 build:
 	@echo "Please run 'tiny' or 'regular' make target first to configure"
 
 # Configure the build with minimal dependencies
 tiny: deps/luv/CMakeLists.txt
-	cmake -H. -Bbuild ${CONFIGURE_FLAGS} ${EXTRA_CONFIGURE_FLAGS}
+	cmake -H. -B${BUILD_PREFIX} ${CONFIGURE_FLAGS} ${EXTRA_CONFIGURE_FLAGS}
 
 # Configure the build with openssl, pcre and lpeg
 regular: deps/luv/CMakeLists.txt
-	cmake -H. -Bbuild ${CONFIGURE_REGULAR_FLAGS} ${EXTRA_CONFIGURE_FLAGS}
+	cmake -H. -B${BUILD_PREFIX} ${CONFIGURE_REGULAR_FLAGS} ${EXTRA_CONFIGURE_FLAGS}
 
 # In case the user forgot to pull in submodules, grab them.
 deps/luv/CMakeLists.txt:
 	git submodule update --init --recursive
 
 clean:
-	rm -rf build test.bin
+	rm -rf ${BUILD_PREFIX} test.bin
 
 reset:
 	git submodule update --init --recursive && \
@@ -109,14 +111,14 @@ reset:
 	git checkout .
 
 install: luvi
-	install -p build/luvi ${BINPREFIX}/luvi
+	install -p ${BUILD_PREFIX}/luvi ${BINPREFIX}/luvi
 
 uninstall:
 	rm -f ${BINPREFIX}/luvi
 
 test: luvi
 	rm -f test.bin
-	build/luvi samples/test.app -- 1 2 3 4
-	build/luvi samples/test.app -o test.bin
+	${BUILD_PREFIX}/luvi samples/test.app -- 1 2 3 4
+	${BUILD_PREFIX}/luvi samples/test.app -o test.bin
 	./test.bin 1 2 3 4
 	rm -f test.bin
