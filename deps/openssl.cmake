@@ -17,12 +17,23 @@ else (WithSharedOpenSSL)
   endif()
 
   if(WIN32)
+    if (CMAKE_CROSSCOMPILING)
+      if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "AMD64")
+        set(OPENSSL_CONFIGURE_COMMAND CONFIGURE_INSIST=1 perl ./Configure mingw64 ${OPENSSL_CONFIG_OPTIONS})
+      else()
+        set(OPENSSL_CONFIGURE_COMMAND CONFIGURE_INSIST=1 perl ./Configure mingw ${OPENSSL_CONFIG_OPTIONS})
+      endif()
+      
+      set(OPENSSL_BUILD_COMMAND make $ENV{MAKEFLAGS})
+    else()
       if("${CMAKE_GENERATOR_PLATFORM}" MATCHES "x64")
         set(OPENSSL_CONFIGURE_COMMAND perl ./Configure VC-WIN64A ${OPENSSL_CONFIG_OPTIONS})
       else()
         set(OPENSSL_CONFIGURE_COMMAND perl ./Configure VC-WIN32 ${OPENSSL_CONFIG_OPTIONS})
       endif()
+      
       set(OPENSSL_BUILD_COMMAND nmake)
+    endif()
   else()
     if (CMAKE_CROSSCOMPILING)
       # This is an attempt to start cross compiling support for openssl.

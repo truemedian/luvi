@@ -37,7 +37,7 @@ BUILD_PREFIX ?= build
 # GENERATOR: CMake generator to use, passed as -G"GENERATOR" to cmake
 # PREFIX: Where to install luvi, defaults to /usr/local
 # BINPREFIX: Where to install luvi binary, defaults to $PREFIX/bin
-# EXTRA_BUILD_OPTIONS: extra options to pass to make when building
+# EXTRA_BUILD_FLAGS: extra options to pass to make when building
 # EXTRA_CONFIGURE_FLAGS: extra options to pass to cmake when configuring
 #
 # Note: WITH_SHARED_LUA=ON and WITH_LUA_ENGINE=Lua is known to be very buggy.
@@ -85,7 +85,7 @@ endif
 
 # This does the actual build and configures as default flavor is there is no build folder.
 luvi: build
-	cmake --build ${BUILD_PREFIX} -- ${BUILD_OPTIONS} ${EXTRA_BUILD_OPTIONS}
+	cmake --build ${BUILD_PREFIX} -- ${BUILD_OPTIONS} ${EXTRA_BUILD_FLAGS}
 
 build:
 	@echo "Please run 'tiny' or 'regular' make target first to configure"
