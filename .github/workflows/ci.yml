@@ -3,8 +3,6 @@ name: CI
 on:
   push:
   pull_request:
-  release:
-    types: [published]
   
 
 concurrency: # Cancels pending runs when a PR gets updated.
@@ -12,7 +10,7 @@ concurrency: # Cancels pending runs when a PR gets updated.
   cancel-in-progress: true
 
 jobs:
-  build-linux:
+  build-unix:
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -42,7 +40,7 @@ jobs:
           CFLAGS=${CFLAGS//-fvisibility=hidden}
           CFLAGS=${CFLAGS//-g}
 
-          make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }} WITHOUT_AMALG=1
+          make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }}
 
       - name: Build
         shell: hbb {0}
@@ -58,18 +56,6 @@ jobs:
         with:
           name: luvi-${{ env.target }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
           path: build/luvi
-
-      - name: Prepare Artifact
-        if: github.event_name == 'release'
-        run: |
-          cp build/luvi luvi-${{ env.target }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
-
-      - name: Upload Release Artifact
-        uses: softprops/action-gh-release@v1
-        if: github.event_name == 'release'
-        with:
-          files: luvi-${{ env.target }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
-
 
   build-linux-arm:
     runs-on: ubuntu-latest
@@ -134,58 +120,23 @@ jobs:
           name: luvi-Linux_${{ matrix.arch }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
           path: build/luvi
 
-      - name: Prepare Artifact
-        if: github.event_name == 'release'
-        run: |
-          cp build/luvi luvi-Linux_${{ matrix.arch }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
-
-      - name: Upload Release Artifact
-        uses: softprops/action-gh-release@v1
-        if: github.event_name == 'release'
-        with:
-          files: luvi-Linux_${{ matrix.arch }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
-
   build-windows:
     runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
-        build_type:
-          [tiny, tiny32, regular, regular32, regular-asm, regular32-asm]
-        lua_engine: [LuaJIT, Lua]
+        arch: [i686, x86_64]
+        build_type: [tiny, regular]
+    env:
+      ARCH: ${{ matrix.arch }}
 
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
 
-      - name: Cache Dependencies
-        uses: actions/cache@v3
-        id: cache
-        with:
-          path: C:\Program Files\NASM
-          key: ${{ runner.os }}-nasm
-
-      - name: Install Dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          choco install NASM
-
-      - name: Setup PATH
-        run: |
-          Write-Output "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
-          if ("${{ matrix.build_type }}" -match "32") {
-            Write-Output "ARCH=i686" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          } else {
-            Write-Output "ARCH=x86_64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          }
-
-          $BUILD_TYPE = "${{ matrix.build_type }}" -replace "32", ""
-          Write-Output "BUILD_TYPE=$BUILD_TYPE" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
       - name: Configure
-        run: ./make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }} WITHOUT_AMALG=1
+        run: ./make ${{ matrix.build_type }}
 
       - name: Build
         run: ./make
@@ -195,24 +146,39 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: luvi-Windows_${{ env.ARCH }}-${{ matrix.lua_engine }}-${{ env.BUILD_TYPE }}
+          name: luvi-Windows_${{ matrix.arch }}-${{ matrix.build_type }}
           path: |
             build/Release/luvi.exe
             build/Release/luvi.lib
             build/Release/luvi_renamed.lib
 
-      - name: Prepare Artifact
-        if: github.event_name == 'release'
-        run: |
-          cp build/Release/luvi.exe luvi-Windows_${{ env.ARCH }}-${{ matrix.lua_engine }}-${{ env.BUILD_TYPE }}.exe
-          cp build/Release/luvi.lib luvi-Windows_${{ env.ARCH }}-${{ matrix.lua_engine }}-${{ env.BUILD_TYPE }}.lib
-          cp build/Release/luvi_renamed.lib luvi_renamed-Windows_${{ env.ARCH }}-${{ matrix.lua_engine }}-${{ env.BUILD_TYPE }}.lib
 
-      - name: Upload Release Artifact
-        uses: softprops/action-gh-release@v1
-        if: github.event_name == 'release'
+  release:
+    runs-on: ubuntu-latest
+    needs: [build-unix, build-linux-arm, build-windows]
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v3
         with:
-          files: |
-            luvi-Windows_${{ env.ARCH }}-${{ matrix.lua_engine }}-${{ env.BUILD_TYPE }}.exe
-            luvi-Windows_${{ env.ARCH }}-${{ matrix.lua_engine }}-${{ env.BUILD_TYPE }}.lib
-            luvi_renamed-Windows_${{ env.ARCH }}-${{ matrix.lua_engine }}-${{ env.BUILD_TYPE }}.lib
+          path: build
+
+      - name: Prepare
+        run: |
+          mkdir artifacts
+
+          for target in build/*; do
+            for file in $target/*; do
+              file_name=$(basename $file)
+              target_name=$(basename $target)
+              
+              name=${file_name/luvi/$target_name}
+              mv $file artifacts/$name
+            done
+          done
+
+      - name: Upload Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/*
