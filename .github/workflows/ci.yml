@@ -1,6 +1,11 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  release:
+    types: [published]
+  
 
 concurrency: # Cancels pending runs when a PR gets updated.
   group: ${{ github.head_ref || github.run_id }}-${{ github.actor }}
@@ -48,10 +53,23 @@ jobs:
         run: |
           make test
 
-      - uses: actions/upload-artifact@v3
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v3
         with:
           name: luvi-${{ env.target }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
           path: build/luvi
+
+      - name: Prepare Artifact
+        if: github.event_name == 'release'
+        run: |
+          cp build/luvi luvi-${{ env.target }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
+
+      - name: Upload Release Artifact
+        uses: softprops/action-gh-release@v1
+        if: github.event_name == 'release'
+        with:
+          files: luvi-${{ env.target }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
+
 
   build-linux-arm:
     runs-on: ubuntu-latest
@@ -116,6 +134,17 @@ jobs:
           name: luvi-Linux_${{ matrix.arch }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
           path: build/luvi
 
+      - name: Prepare Artifact
+        if: github.event_name == 'release'
+        run: |
+          cp build/luvi luvi-Linux_${{ matrix.arch }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
+
+      - name: Upload Release Artifact
+        uses: softprops/action-gh-release@v1
+        if: github.event_name == 'release'
+        with:
+          files: luvi-Linux_${{ matrix.arch }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
+
   build-windows:
     runs-on: windows-latest
     strategy:
@@ -171,3 +200,19 @@ jobs:
             build/Release/luvi.exe
             build/Release/luvi.lib
             build/Release/luvi_renamed.lib
+
+      - name: Prepare Artifact
+        if: github.event_name == 'release'
+        run: |
+          cp build/Release/luvi.exe luvi-Windows_${{ env.ARCH }}-${{ matrix.lua_engine }}-${{ env.BUILD_TYPE }}.exe
+          cp build/Release/luvi.lib luvi-Windows_${{ env.ARCH }}-${{ matrix.lua_engine }}-${{ env.BUILD_TYPE }}.lib
+          cp build/Release/luvi_renamed.lib luvi_renamed-Windows_${{ env.ARCH }}-${{ matrix.lua_engine }}-${{ env.BUILD_TYPE }}.lib
+
+      - name: Upload Release Artifact
+        uses: softprops/action-gh-release@v1
+        if: github.event_name == 'release'
+        with:
+          files: |
+            luvi-Windows_${{ env.ARCH }}-${{ matrix.lua_engine }}-${{ env.BUILD_TYPE }}.exe
+            luvi-Windows_${{ env.ARCH }}-${{ matrix.lua_engine }}-${{ env.BUILD_TYPE }}.lib
+            luvi_renamed-Windows_${{ env.ARCH }}-${{ matrix.lua_engine }}-${{ env.BUILD_TYPE }}.lib
