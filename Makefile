@@ -1,6 +1,3 @@
-OS:=$(shell uname -s)
-ARCH:=$(shell uname -m)
-
 ################################################################################
 # Default build options
 ################################################################################
@@ -28,7 +25,11 @@ WITH_SHARED_PCRE ?= OFF
 WITH_SHARED_LPEG ?= OFF
 WITH_SHARED_ZLIB ?= OFF
 
-PREFIX ?= /usr/local
+ifeq (${OS},Windows_NT)
+  PREFIX ?= C:/Program Files/luvit
+else
+  PREFIX ?= /usr/local
+endif
 BINPREFIX ?= ${PREFIX}/bin
 
 BUILD_PREFIX ?= build
@@ -54,7 +55,7 @@ CONFIGURE_FLAGS := \
 	-DWITH_LUA_ENGINE=${WITH_LUA_ENGINE} \
 	-DWithSharedLibluv=${WITH_SHARED_LIBLUV} \
 	-DWithSharedLibuv=${WITH_SHARED_LIBUV} \
-	-DWithSharedLua=${WITH_SHARED_LUA} \
+	-DWithSharedLua=${WITH_SHARED_LUA}
 
 CONFIGURE_REGULAR_FLAGS := ${CONFIGURE_FLAGS} \
 	-DWithOpenSSL=${WITH_OPENSSL} \
@@ -65,7 +66,7 @@ CONFIGURE_REGULAR_FLAGS := ${CONFIGURE_FLAGS} \
 	-DWithOpenSSLASM=${WITH_OPENSSL_ASM} \
 	-DWithSharedPCRE=${WITH_SHARED_PCRE} \
 	-DWithSharedLPEG=${WITH_SHARED_LPEG} \
-	-DWithSharedZLIB=${WITH_SHARED_ZLIB} \
+	-DWithSharedZLIB=${WITH_SHARED_ZLIB}
 
 ifdef GENERATOR
 	CONFIGURE_FLAGS+= -G"${GENERATOR}"
@@ -88,7 +89,7 @@ luvi: build
 	cmake --build ${BUILD_PREFIX} -- ${BUILD_OPTIONS} ${EXTRA_BUILD_FLAGS}
 
 build:
-	@echo "Please run 'tiny' or 'regular' make target first to configure"
+	@echo "Please run 'make tiny' or 'make regular' first to configure"
 
 # Configure the build with minimal dependencies
 tiny: deps/luv/CMakeLists.txt
@@ -98,17 +99,8 @@ tiny: deps/luv/CMakeLists.txt
 regular: deps/luv/CMakeLists.txt
 	cmake -H. -B${BUILD_PREFIX} ${CONFIGURE_REGULAR_FLAGS} ${EXTRA_CONFIGURE_FLAGS}
 
-# In case the user forgot to pull in submodules, grab them.
-deps/luv/CMakeLists.txt:
-	git submodule update --init --recursive
-
 clean:
 	rm -rf ${BUILD_PREFIX} test.bin
-
-reset:
-	git submodule update --init --recursive && \
-	git clean -f -d && \
-	git checkout .
 
 install: luvi
 	install -p ${BUILD_PREFIX}/luvi ${BINPREFIX}/luvi
@@ -116,9 +108,18 @@ install: luvi
 uninstall:
 	rm -f ${BINPREFIX}/luvi
 
+# In case the user forgot to pull in submodules, grab them.
+deps/luv/CMakeLists.txt:
+	git submodule update --init --recursive
+
 test: luvi
 	rm -f test.bin
 	${BUILD_PREFIX}/luvi samples/test.app -- 1 2 3 4
 	${BUILD_PREFIX}/luvi samples/test.app -o test.bin
 	./test.bin 1 2 3 4
 	rm -f test.bin
+
+reset:
+	git submodule update --init --recursive && \
+	git clean -f -d && \
+	git checkout .
