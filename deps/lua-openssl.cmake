@@ -32,6 +32,7 @@ add_library(lua_openssl STATIC
   ${LUA_OPENSSL_DIR}/src/dsa.c
   ${LUA_OPENSSL_DIR}/src/ec.c
   ${LUA_OPENSSL_DIR}/src/engine.c
+  ${LUA_OPENSSL_DIR}/src/mac.c
   ${LUA_OPENSSL_DIR}/src/hmac.c
   ${LUA_OPENSSL_DIR}/src/kdf.c
   ${LUA_OPENSSL_DIR}/src/lbn.c
@@ -41,6 +42,7 @@ add_library(lua_openssl STATIC
   ${LUA_OPENSSL_DIR}/src/oids.txt
   ${LUA_OPENSSL_DIR}/src/openssl.c
   ${LUA_OPENSSL_DIR}/src/ots.c
+  ${LUA_OPENSSL_DIR}/src/param.c
   ${LUA_OPENSSL_DIR}/src/pkcs12.c
   ${LUA_OPENSSL_DIR}/src/pkcs7.c
   ${LUA_OPENSSL_DIR}/src/pkey.c
