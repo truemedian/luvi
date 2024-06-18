@@ -1,7 +1,6 @@
-set(LUA_OPENSSL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/lua-openssl)
-if(DEFINED ENV{LUA_OPENSSL_DIR})
-  set(LUA_OPENSSL_DIR $ENV{LUA_OPENSSL_DIR})
-endif()
+include(deps/openssl.cmake)
+
+set(LUA_OPENSSL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/deps/lua-openssl" CACHE PATH "Path to lua-openssl")
 
 include_directories(
   ${CMAKE_BINARY_DIR}/include
@@ -10,21 +9,14 @@ include_directories(
   ${LUA_OPENSSL_DIR}/src
 )
 
-add_definitions(
-  -DCOMPAT52_IS_LUAJIT
-)
-
 if(WIN32)
-  add_definitions(
-    -DWIN32_LEAN_AND_MEAN
-    -D_CRT_SECURE_NO_WARNINGS
-  )
+  add_compile_definitions(WIN32_LEAN_AND_MEAN)
+  add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 else()
   find_package(Threads)
-  add_definitions(-DPTHREADS)
 endif()
 
-add_library(lua_openssl
+add_library(lua_openssl STATIC
   ${LUA_OPENSSL_DIR}/deps/auxiliar/auxiliar.c
   ${LUA_OPENSSL_DIR}/deps/auxiliar/subsidiar.c
   ${LUA_OPENSSL_DIR}/src/asn1.c
@@ -67,13 +59,8 @@ add_library(lua_openssl
   ${LUA_OPENSSL_DIR}/src/xstore.c
 )
 
-set_target_properties(lua_openssl PROPERTIES COMPILE_FLAGS "-DLUA_LIB")
+target_include_directories(lua_openssl PUBLIC ${OPENSSL_INCLUDE_DIR})
+target_link_libraries(lua_openssl ${OPENSSL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
-if (WithSharedOpenSSL)
-  target_link_libraries(lua_openssl ssl crypto)
-else (WithSharedOpenSSL)
-  add_dependencies(lua_openssl openssl)
-  target_link_libraries(lua_openssl openssl_ssl openssl_crypto)
-endif (WithSharedOpenSSL)
-
-set(EXTRA_LIBS ${EXTRA_LIBS} lua_openssl)
+list(APPEND EXTRA_LIBS lua_openssl ${OPENSSL_LIBRARIES})
+list(APPEND EXTRA_DEFINITIONS WITH_OPENSSL=1)
