@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.15)
 
 project(luvi C)
 
@@ -6,7 +6,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 if (MSVC)
   # Statically build against C runtime (use the right version for Release/Debug)
-  set(MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif ()
 
 if (CMAKE_COMPILER_IS_GNUCC)
@@ -155,7 +155,6 @@ set_target_properties(luvi PROPERTIES ENABLE_EXPORTS ON)
 
 target_compile_definitions(luvi PRIVATE LUVI_VERSION="${LUVI_VERSION}")
 target_compile_definitions(luvi PRIVATE ${EXTRA_DEFINITIONS}) # Add any extra definitions, like the WITH_{LIB} defines
-
 
 ###############################################################################
 ## Installation Targets
