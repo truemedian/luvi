@@ -32,7 +32,7 @@ else ()
     OUTPUT_STRIP_TRAILING_WHITESPACE)
 
   # Handle shallow clones
-  if ("${LUVI_VERSION}" MATCHES "fatal: No names found, cannot describe")
+  if (LUVI_VERSION STREQUAL "")
     execute_process(
       COMMAND git rev-parse --short HEAD
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
