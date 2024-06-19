@@ -1,11 +1,11 @@
 #!/bin/bash
 
-BUILD_TYPE=${1:-regular-asm}
+set -e
+
+BUILD_TYPE=$1
 NPROCS=$(grep -c ^processor /proc/cpuinfo)
 
 echo "Build Type: ${BUILD_TYPE}"
-
-set -e
 
 # Activate Holy Build Box environment.
 source /hbb_exe/activate
