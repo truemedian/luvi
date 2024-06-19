@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 
 project(luvi C)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
 
 if (MSVC)
   # Statically build against C runtime (use the right version for Release/Debug)
@@ -70,7 +70,6 @@ if (WithSharedLibluv)
   find_package(Libuv  REQUIRED)
   include_directories(${LIBUV_INCLUDE_DIR})
 
-  include(LuaJITAddExecutable) # We're compiling against LuaJIT, so we need to use the LuaJIT AddExecutable function
   list(APPEND LUVI_LIBRARIES ${LIBLUV_LIBRARIES} ${LUAJIT_LIBRARIES} ${LIBUV_LIBRARIES})
 else (WithSharedLibluv)
   # Build luv as static library instead of as module
@@ -104,6 +103,7 @@ endif ()
 
 if (WithLPEG)
   include(deps/lpeg.cmake)
+  set(lpeg_re_lua ${LPEGLIB_DIR}/re.lua)
 endif ()
 
 if (WithZLIB)
@@ -129,9 +129,7 @@ if (WITH_LUA_ENGINE STREQUAL Lua)
   add_definitions(-DWITH_PLAIN_LUA)
 endif ()
 
-if(LPEGLIB_DIR)
-  set(lpeg_re_lua ${LPEGLIB_DIR}/re.lua)
-endif()
+include(LuaAddExecutable)
 lua_add_executable(luvi
   ${winsvc}
   src/main.c

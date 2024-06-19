@@ -3,25 +3,22 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  build:
+  build-posix:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
-        build_type: [tiny, regular-asm]
+        os: [ubuntu-latest, macos-13, macos-latest]
+        build_type: [tiny, regular]
         lua_engine: [LuaJIT, Lua]
-    env:
-      BUILD_TYPE: ${{ matrix.build_type }}
-      WITH_LUA_ENGINE: ${{ matrix.lua_engine }}
-      NPROCS: 1
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
 
     - name: Configure
-      run: WITHOUT_AMALG=1 make ${BUILD_TYPE} WITH_LUA_ENGINE=${WITH_LUA_ENGINE}
+      run: make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }}
 
     - name: Build
       run: make
@@ -29,59 +26,66 @@ jobs:
     - name: Test
       run: make test
 
-  deploy-linux:
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: [build]
-    runs-on: ubuntu-latest
+  build-mingw:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [tiny, regular]
+        lua_engine: [LuaJIT, Lua]
+        msystem: [mingw32, mingw64]
+
     steps:
-    - uses: actions/checkout@v2
+    - name: 'Setup MSYS2'
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.msystem }}
+        update: true
+        pacboy: toolchain:p cmake:p nasm:p
+        install: make
+
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
 
-    - name: Fetch
-      run: git fetch --unshallow --no-recurse-submodules
+    - name: Configure
+      run: mingw32-make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }} GENERATOR="MinGW Makefiles"
 
     - name: Build
-      run: make linux-build
+      run: mingw32-make
 
-    - name: Github Release
-      id: create_release
-      uses: softprops/action-gh-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        files: |
-          luvi-regular-Linux_x86_64
-          luvi-tiny-Linux_x86_64
-          luvi-regular-Linux_i686
-          luvi-tiny-Linux_i686
-        draft: false
-        prerelease: false
+    - name: Test
+      run: mingw32-make test
 
-  deploy-macos:
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: [build]
-    runs-on: macos-latest
+  build-msvc:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [tiny, regular]
+        lua_engine: [LuaJIT, Lua]
+        arch: [x64, x86]
+
     steps:
-    - uses: actions/checkout@v2
+    - name: Step MSVC Developer Prompt
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.arch }}
+
+    - name: Install NASM
+      run: |
+        choco install nasm
+        echo "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
 
-    - name: Fetch
-      run: git fetch --unshallow --no-recurse-submodules
+    - name: Configure
+      run: nmake ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }}
 
     - name: Build
-      run: make travis-publish
+      run: nmake
 
-    - name: Github Release
-      id: create_release
-      uses: softprops/action-gh-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        files: |
-          luvi-regular-Darwin_x86_64
-          luvi-tiny-Darwin_x86_64
-          luvi-src-*.tar.gz
-        draft: false
-        prerelease: false
+    - name: Test
+      run: nmake test
