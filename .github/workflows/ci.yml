@@ -76,7 +76,7 @@ jobs:
     - name: Publish Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: windows-${{ matrix.msystem }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
+        name: Windows-${{ matrix.msystem }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
         path: |
           build/luvi.exe
           build/*.lib
@@ -88,7 +88,7 @@ jobs:
       matrix:
         build_type: [tiny, regular]
         lua_engine: [LuaJIT, Lua]
-        arch: [x64, x86]
+        arch: [AMD64, X86]
 
     steps:
     - name: Setup MSVC Developer Prompt
@@ -117,5 +117,5 @@ jobs:
     - name: Publish Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: windows-msvc-${{ matrix.arch }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
+        name: Windows-msvc-${{ matrix.arch }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
         path: build/Release
