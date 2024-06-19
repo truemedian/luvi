@@ -8,5 +8,5 @@ add_library(lpeglib STATIC
   ${LPEGLIB_DIR}/lpvm.c
 )
 
-list(APPEND EXTRA_LIBS lpeglib)
-list(APPEND EXTRA_DEFINITIONS WITH_LPEG=1)
+list(APPEND LUVI_LIBRARIES lpeglib)
+list(APPEND LUVI_DEFINITIONS WITH_LPEG=1)

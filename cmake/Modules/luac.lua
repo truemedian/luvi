@@ -20,23 +20,11 @@ local chunk = assert(loadfile(src, nil, '@'..src))
 local bytecode = string.dump(chunk)
 
 local function basename(name)
-   local base = name
-   if base:match "[/\\]" then
-      base = name:match("^.*[/\\](.*)$")
-   end
-   base = base:gsub("^%.", "_")
-   if base:match "%." then
-      base = base:match("^(.*)%."):gsub("%.", "_")
-   end
-   return base
+   return name:match("([^/\\]+)$")
 end
 
-local function escapefn(name)
-   return '"'..
-      name:gsub('\\', '\\\\')
-          :gsub('\n', '\\n')
-          :gsub('\r', '\\r')
-          :gsub('"', '\\"')..'"'
+local function basename_noext(name)
+   return basename(name):match("(.*)%..+")
 end
 
 local function write_chunk(s)

@@ -1,27 +1,15 @@
 #!/bin/bash
 
-set -e
+source /hbb_exe/activate
+set -xeuo pipefail
 
 BUILD_TYPE=$1
-NPROCS=$(grep -c ^processor /proc/cpuinfo)
+LUA_ENGINE=$2
+ARCH=$3
 
-echo "Build Type: ${BUILD_TYPE}"
+rm -f /etc/yum.repos.d/phusion_centos-6-scl-i386.repo
+yum install -y cmake3-*.$ARCH
 
-# Activate Holy Build Box environment.
-source /hbb_exe/activate
-# Remove -fvisibility=hidden and -g from CFLAGS
-CFLAGS=${CFLAGS//-fvisibility=hidden}
-CFLAGS=${CFLAGS//-g}
-
-set -x
-
-# Extract and enter source
-# Use /luvi dir to avoid CMake assertion failure in /
-mkdir -p luvi
-tar xzf /io/luvi-src.tar.gz --directory luvi
-cd luvi
-make ${BUILD_TYPE}
-make -j${NPROCS}
-ldd build/luvi
-libcheck build/luvi
-cp build/luvi /io
+make $BUILD_TYPE CMAKE=cmake3 WITH_LUA_ENGINE=$LUA_ENGINE
+make             CMAKE=cmake3
+make test        CMAKE=cmake3

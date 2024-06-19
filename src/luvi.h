@@ -42,6 +42,7 @@
 #endif
 #ifdef WITH_PCRE
 #include "pcre.h"
+int luaopen_rex_pcre(lua_State* L);
 #endif
 #ifdef WITH_ZLIB
 #include "zlib.h"
@@ -54,7 +55,14 @@ LUALIB_API int luaopen_zlib(lua_State * const L);
 #ifdef WITH_LPEG
 int luaopen_lpeg(lua_State* L);
 #endif
+#ifdef WITH_PLAIN_LUA
+#include "../deps/bit.c"
+#endif
 
 void luvi_openlibs(lua_State *L);
+
+LUALIB_API int luaopen_init(lua_State *L);
+LUALIB_API int luaopen_luvibundle(lua_State *L);
+LUALIB_API int luaopen_luvipath(lua_State *L);
 #endif
 

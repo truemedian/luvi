@@ -40,6 +40,9 @@ else (WithSharedOpenSSL)
     endif ()
   endif ()
 
+  message("OPENSSL_CONFIGURE_TARGET: ${OPENSSL_CONFIGURE_TARGET}")
+  message("OPENSSL_CONFIG_OPTIONS: ${OPENSSL_CONFIG_OPTIONS}")
+  message("OPENSSL_BUILD_COMMAND: ${OPENSSL_BUILD_COMMAND}")
   ExternalProject_Add(openssl
     PREFIX            openssl
     URL               https://www.openssl.org/source/openssl-3.0.14.tar.gz
@@ -51,9 +54,11 @@ else (WithSharedOpenSSL)
     INSTALL_COMMAND   ""
     TEST_COMMAND      ""
     DOWNLOAD_EXTRACT_TIMESTAMP ON
+    STEP_TARGETS   build
   )
 
-  set(OPENSSL_ROOT_DIR ${CMAKE_BINARY_DIR}/openssl/src/openssl)
+  ExternalProject_Get_property(openssl SOURCE_DIR)
+  set(OPENSSL_ROOT_DIR ${SOURCE_DIR})
 
   if (MSVC)
     set(OPENSSL_LIB_CRYPTO ${OPENSSL_ROOT_DIR}/libcrypto.lib)
@@ -65,9 +70,11 @@ else (WithSharedOpenSSL)
 
   add_library(openssl_ssl STATIC IMPORTED)
   set_target_properties(openssl_ssl PROPERTIES IMPORTED_LOCATION ${OPENSSL_LIB_SSL})
+  add_dependencies(openssl_ssl openssl-build)
 
   add_library(openssl_crypto STATIC IMPORTED)
   set_target_properties(openssl_crypto PROPERTIES IMPORTED_LOCATION ${OPENSSL_LIB_CRYPTO})
+  add_dependencies(openssl_crypto openssl-build)
 
   set(OPENSSL_INCLUDE_DIR ${OPENSSL_ROOT_DIR}/include)
   set(OPENSSL_LIBRARIES openssl_ssl openssl_crypto)

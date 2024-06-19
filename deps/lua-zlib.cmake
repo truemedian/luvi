@@ -10,5 +10,5 @@ add_library(lua_zlib STATIC
 target_include_directories(lua_zlib PUBLIC ${ZLIB_INCLUDE_DIR})
 target_link_libraries(lua_zlib ${ZLIB_LIBRARIES})
 
-list(APPEND EXTRA_LIBS lua_zlib ${ZLIB_LIBRARIES})
-list(APPEND EXTRA_DEFINITIONS WITH_ZLIB=1)
+list(APPEND LUVI_LIBRARIES lua_zlib ${ZLIB_LIBRARIES})
+list(APPEND LUVI_DEFINITIONS WITH_ZLIB=1)
