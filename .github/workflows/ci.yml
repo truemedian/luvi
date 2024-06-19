@@ -26,6 +26,17 @@ jobs:
     - name: Test
       run: make test
 
+    - name: Fetch System Name
+      run: |
+        echo "SYSTEM_NAME=$(uname -s)" >> $GITHUB_ENV
+        echo "SYSTEM_ARCH=$(uname -m)" >> $GITHUB_ENV
+
+    - name: Publish Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.SYSTEM_NAME }}-${{ env.SYSTEM_ARCH }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
+        path: build/luvi
+
   build-mingw:
     runs-on: windows-latest
     strategy:
@@ -41,8 +52,13 @@ jobs:
       with:
         msystem: ${{ matrix.msystem }}
         update: true
-        pacboy: toolchain:p cmake:p nasm:p
+        pacboy: toolchain:p cmake:p
         install: make
+
+    - name: Install NASM
+      run: |
+        choco install nasm
+        echo "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
     - uses: actions/checkout@v4
       with:
@@ -57,6 +73,14 @@ jobs:
     - name: Test
       run: mingw32-make test
 
+    - name: Publish Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-${{ matrix.msystem }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
+        path: |
+          build/luvi.exe
+          build/*.lib
+
   build-msvc:
     runs-on: windows-latest
     strategy:
@@ -67,7 +91,7 @@ jobs:
         arch: [x64, x86]
 
     steps:
-    - name: Step MSVC Developer Prompt
+    - name: Setup MSVC Developer Prompt
       uses: ilammy/msvc-dev-cmd@v1
       with:
         arch: ${{ matrix.arch }}
@@ -89,3 +113,9 @@ jobs:
 
     - name: Test
       run: nmake test
+
+    - name: Publish Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-msvc-${{ matrix.arch }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
+        path: build/Release
