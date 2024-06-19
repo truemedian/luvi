@@ -53,9 +53,10 @@ jobs:
         msystem: ${{ matrix.msystem }}
         update: true
         pacboy: toolchain:p cmake:p
-        install: make
+        install: git
 
     - name: Install NASM
+      if: matrix.build_type == 'regular'
       run: |
         choco install nasm
         echo "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
@@ -65,12 +66,15 @@ jobs:
         submodules: recursive
 
     - name: Configure
+      shell: msys2 {0}
       run: mingw32-make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }} GENERATOR="MinGW Makefiles"
 
     - name: Build
-      run: mingw32-make
+      shell: msys2 {0}
+      run: mingw32-make 
 
     - name: Test
+      shell: msys2 {0}
       run: mingw32-make test
 
     - name: Publish Artifacts
@@ -97,6 +101,7 @@ jobs:
         arch: ${{ matrix.arch }}
 
     - name: Install NASM
+      if: matrix.build_type == 'regular'
       run: |
         choco install nasm
         echo "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append

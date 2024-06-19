@@ -16,6 +16,8 @@ else (WithSharedPCRE)
       "Enable support for Unicode Transformation Format (UTF-8/UTF-16/UTF-32) encoding.")
 
   set(BUILD_SHARED_LIBS OFF)
+  add_compile_definitions(PCRE_STATIC)
+
   add_subdirectory(deps/pcre)
 
   set(PCRE_INCLUDE_DIR ${CMAKE_BINARY_DIR}/deps/pcre)

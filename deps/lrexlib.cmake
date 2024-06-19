@@ -12,8 +12,7 @@ target_include_directories(lrexlib PUBLIC ${PCRE_INCLUDE_DIR})
 target_link_libraries(lrexlib ${PCRE_LIBRARIES})
 target_compile_definitions(lrexlib PRIVATE
   LUA_COMPAT_APIINTCASTS
-  VERSION="2.8.0"
-  PCRE_STATIC)
+  VERSION="2.8.0")
 
 list(APPEND EXTRA_LIBS lrexlib ${PCRE_LIBRARIES})
 list(APPEND EXTRA_DEFINITIONS WITH_PCRE=1)

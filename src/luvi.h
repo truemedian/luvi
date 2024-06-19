@@ -33,7 +33,7 @@
 #include <errno.h>
 #endif
 
-#if (LUA_VERSION_NUM!=503)
+#if (LUA_VERSION_NUM < 503)
 #include "compat-5.3.h"
 #endif
 

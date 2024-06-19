@@ -13,6 +13,10 @@ if (CMAKE_COMPILER_IS_GNUCC)
   add_compile_options(-Wno-unused-function)
 endif ()
 
+if (MINGW)
+  add_compile_options(-Wno-error=incompatible-pointer-types)
+endif ()
+
 if (UNIX)
   add_compile_options(-Wall)
 endif ()
