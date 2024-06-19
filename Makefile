@@ -96,6 +96,10 @@ INSTALL  = cmd /c copy /y
 LUVI     = cmd /c $(BUILD_PREFIX)\$(CMAKE_BUILD_TYPE)\luvi.exe
 TEST_BIN = cmd /c test.bin
 
+!ifndef CMAKE
+CMAKE = cmake
+!endif
+
 !else # and now the other
 else
 
@@ -133,6 +137,8 @@ RM       = rm -f
 INSTALL  = install -p
 LUVI     = $(BUILD_PREFIX)/luvi
 TEST_BIN = ./test.bin
+
+CMAKE   ?= cmake
 
 endif    # This is the end of the conditional in GNU make and this segment is not evaluated in nmake
 !endif : # This is the end of the conditional in nmake and a weird target in GNU make
@@ -192,7 +198,7 @@ default: luvi
 
 # This does the actual build and configures as default flavor is there is no build folder.
 luvi: $(BUILD_PREFIX)
-	cmake --build $(BUILD_PREFIX) --config $(CMAKE_BUILD_TYPE) -- $(BUILD_OPTIONS) $(EXTRA_OPTIONS)
+	$(CMAKE) --build $(BUILD_PREFIX) --config $(CMAKE_BUILD_TYPE) -- $(BUILD_OPTIONS) $(EXTRA_OPTIONS)
 
 ### Directories and dependencies
 
@@ -208,11 +214,11 @@ deps/luv/CMakeLists.txt:
 
 # Configure the build with minimal dependencies
 tiny: deps/luv/CMakeLists.txt
-	cmake -H. -B$(BUILD_PREFIX) $(CONFIGURE_FLAGS) $(EXTRA_CONFIGURE_FLAGS)
+	$(CMAKE) -H. -B$(BUILD_PREFIX) $(CONFIGURE_FLAGS) $(EXTRA_CONFIGURE_FLAGS)
 
 # Configure the build with any libraries requested
 regular: deps/luv/CMakeLists.txt
-	cmake -H. -B$(BUILD_PREFIX) $(CONFIGURE_REGULAR_FLAGS) $(EXTRA_CONFIGURE_FLAGS)
+	$(CMAKE) -H. -B$(BUILD_PREFIX) $(CONFIGURE_REGULAR_FLAGS) $(EXTRA_CONFIGURE_FLAGS)
 
 ### Phony targets
 
