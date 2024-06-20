@@ -13,7 +13,7 @@ if which yum; then
     if [ "$ARCH" != "i686" ]; then
         yum install -y epel-release
         yum install -y cmake3
-    else # the version of cmake install is too old, and cmake3 is not available for i386
+    else # the version of cmake install is too old, and cmake3 is not available for i686
         yum install -y openssl-devel
 
         curl -fLO https://github.com/Kitware/CMake/releases/download/v3.22.3/cmake-3.22.3.tar.gz
