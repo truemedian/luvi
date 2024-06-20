@@ -19,7 +19,7 @@ else (WithSharedOpenSSL)
   endif()
 
   set(OPENSSL_CONFIGURE_TARGET)
-  set(OPENSSL_BUILD_COMMAND make $ENV{MAKEFLAGS})
+  set(OPENSSL_BUILD_COMMAND make)
   if (WIN32)
     if (MSVC)
       set(OPENSSL_CONFIGURE_TARGET VC-WIN32)
@@ -33,7 +33,7 @@ else (WithSharedOpenSSL)
         set(OPENSSL_CONFIGURE_TARGET mingw64)
       endif ()
 
-      set(OPENSSL_BUILD_COMMAND mingw32-make $ENV{MAKEFLAGS})
+      set(OPENSSL_BUILD_COMMAND mingw32-make)
     else ()
       # TODO: Add support for other Windows compilers
       message(FATAL_ERROR "This platform does not support building OpenSSL")
@@ -47,13 +47,11 @@ else (WithSharedOpenSSL)
     PREFIX            openssl
     URL               https://www.openssl.org/source/openssl-3.0.14.tar.gz
     URL_HASH          SHA256=eeca035d4dd4e84fc25846d952da6297484afa0650a6f84c682e39df3a4123ca
-    LOG_BUILD         ON
     BUILD_IN_SOURCE   YES
     BUILD_COMMAND     ${OPENSSL_BUILD_COMMAND}
     CONFIGURE_COMMAND perl Configure ${OPENSSL_CONFIGURE_TARGET} ${OPENSSL_CONFIG_OPTIONS}
     INSTALL_COMMAND   ""
     TEST_COMMAND      ""
-    DOWNLOAD_EXTRACT_TIMESTAMP ON
     STEP_TARGETS   build
   )
 
