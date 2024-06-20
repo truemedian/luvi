@@ -225,7 +225,7 @@ jobs:
         git describe --tags > VERSION
         touch deps/luv/deps/luajit/src/luajit_relver.txt
 
-        tar cvJf --exclude='.git*' luvi-source.tar.xz .
+        tar cvJf luvi-source.tar.xz . --exclude='.git*' 
 
     - name: Publish Source
       uses: actions/upload-artifact@v4
