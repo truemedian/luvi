@@ -223,7 +223,7 @@ jobs:
     - name: Package Source
       run: |
         git describe --tags > VERSION
-        touch deps/lub/deps/luajit/src/luajit_relver.txt
+        touch deps/luv/deps/luajit/src/luajit_relver.txt
 
         tar cvJf --exclude='.git*' luvi-source.tar.xz .
 
