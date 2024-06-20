@@ -56,7 +56,7 @@ LUALIB_API int luaopen_zlib(lua_State * const L);
 int luaopen_lpeg(lua_State* L);
 #endif
 #ifdef WITH_PLAIN_LUA
-#include "../deps/bit.c"
+LUALIB_API int luaopen_bit(lua_State *L);
 #endif
 
 void luvi_openlibs(lua_State *L);
