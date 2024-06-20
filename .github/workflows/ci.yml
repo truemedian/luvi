@@ -52,6 +52,7 @@ jobs:
         build_type: [tiny, regular]
         lua_engine: [LuaJIT, Lua]
         arch: [x86_64, i686]
+        libc: [glibc, musl]
     env:
       ARTIFACT: Linux-${{ matrix.arch }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
 
@@ -61,19 +62,9 @@ jobs:
         fetch-depth: 0
         submodules: recursive
 
-    - name: Build Linux32
-      if: matrix.arch == 'i686'
-      uses: docker://ghcr.io/phusion/holy-build-box/hbb-32
-      with:
-        entrypoint: /bin/bash
-        args: packaging/holy-build.sh ${{ matrix.build_type }} ${{ matrix.lua_engine }} ${{ matrix.arch }}
-
-    - name: Build Linux64
-      if: matrix.arch == 'x86_64'
-      uses: docker://ghcr.io/phusion/holy-build-box/hbb-64
-      with: 
-        entrypoint: /bin/bash
-        args: packaging/holy-build.sh ${{ matrix.build_type }} ${{ matrix.lua_engine }} ${{ matrix.arch }}
+    - name: Build
+      run: |
+        bash packaging/linux-run.sh ${{ matrix.libc }} ${{ matrix.arch }} ${{ matrix.build_type }} ${{ matrix.lua_engine }}
 
     - name: Rename Artifacts
       run: |
