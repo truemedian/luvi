@@ -1,3 +1,10 @@
+
+pushd deps/luv/deps/luajit
+git show -s --format=%ct > src/luajit_relver.txt
+popd
+
+git describe --tags > VERSION
+
 failed=
 function delete() {
     files=$(find $1 2>/dev/null | tr '\n' ' ')
@@ -64,33 +71,34 @@ delete deps/lua-zlib/CMakeLists.txt # build system, vendored into cmake
 delete deps/lua-zlib/Makefile       # build system, vendored into cmake
 delete deps/lua-zlib/rockspecs      # luarocks configuration
 
-delete deps/zlib/.git             # git tracking information
-delete deps/zlib/.github          # github actions workflows
-delete deps/zlib/.gitignore       # git ignore rules
-delete deps/zlib/amiga            # amiga build scripts
-delete deps/zlib/configure        # build system, not used
-delete deps/zlib/contrib          # extra utilities
-delete deps/zlib/doc              # documentation
-delete deps/zlib/examples         # example code
-delete deps/zlib/FAQ              # documentation
-delete deps/zlib/INDEX            # documentation
-delete deps/zlib/make_vms.com     # vms build script
-delete deps/zlib/Makefile         # build system, not used
-delete deps/zlib/Makefile.in      # build system data
-delete deps/zlib/msdos            # msdos build scripts
-delete deps/zlib/nintendods       # nintendods build scripts
-delete deps/zlib/old              # old build scripts
-delete deps/zlib/os400            # os400 build scripts
-delete deps/zlib/qnx              # qnx build scripts
-delete deps/zlib/test             # test scripts
-delete deps/zlib/treebuild.xml    # build system data
-delete deps/zlib/watcom           # watcom build scripts
-delete deps/zlib/win32            # win32 build scripts
-delete deps/zlib/zconf.h.in       # build system data
-delete deps/zlib/zlib.3           # documentation
-delete deps/zlib/zlib.3.pdf       # documentation
-delete deps/zlib/zlib.pc.cmakein  # build system data
-delete deps/zlib/zlib.pc.in       # build system data
+delete deps/zlib/.git                   # git tracking information
+delete deps/zlib/.github                # github actions workflows
+delete deps/zlib/.gitignore             # git ignore rules
+delete deps/zlib/amiga                  # amiga build scripts
+delete deps/zlib/configure              # build system, not used
+delete deps/zlib/contrib                # extra utilities
+delete deps/zlib/doc                    # documentation
+delete deps/zlib/examples               # example code
+delete deps/zlib/FAQ                    # documentation
+delete deps/zlib/INDEX                  # documentation
+delete deps/zlib/make_vms.com           # vms build script
+delete deps/zlib/Makefile               # build system, not used
+delete deps/zlib/Makefile.in            # build system data
+delete deps/zlib/msdos                  # msdos build scripts
+delete deps/zlib/nintendods             # nintendods build scripts
+delete deps/zlib/old                    # old build scripts
+delete deps/zlib/os400                  # os400 build scripts
+delete deps/zlib/qnx                    # qnx build scripts
+delete deps/zlib/treebuild.xml          # build system data
+delete deps/zlib/watcom                 # watcom build scripts
+delete deps/zlib/win32/DLL_FAQ.txt      # documentation
+delete 'deps/zlib/win32/Makefile*'      # win32 build scripts
+delete deps/zlib/win32/README-WIN32.txt # documentation
+delete deps/zlib/win32/VisualC.txt      # documentation
+delete deps/zlib/zconf.h.in             # build system data
+delete deps/zlib/zlib.3                 # documentation
+delete deps/zlib/zlib.3.pdf             # documentation
+delete deps/zlib/zlib.pc.in             # build system data
 
 delete 'deps/luv/*.rockspec'  # luarocks configuration
 delete deps/luv/.ci/          # ci scripts
@@ -140,12 +148,9 @@ delete deps/luv/deps/libuv/.mailmap                 # git mailmap
 delete deps/luv/deps/libuv/.readthedocs.yaml        # readthedocs configuration
 delete deps/luv/deps/libuv/autogen.sh               # build system, not used
 delete deps/luv/deps/libuv/cmake-toolchains/        # cmake toolchain files
-delete deps/luv/deps/libuv/configure.ac             # build system, not used
 delete deps/luv/deps/libuv/CONTRIBUTING.md          # contribution guidelines
 delete deps/luv/deps/libuv/docs/                    # documentation
 delete deps/luv/deps/libuv/img/                     # documentation
-delete deps/luv/deps/libuv/libuv-static.pc.in       # build system data
-delete deps/luv/deps/libuv/libuv.pc.in              # build system data
 delete deps/luv/deps/libuv/LICENSE-docs             # documentation
 delete deps/luv/deps/libuv/LINKS.md                 # documentation
 delete deps/luv/deps/libuv/m4/                      # build system data
