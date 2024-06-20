@@ -169,9 +169,9 @@ jobs:
 
     - name: Rename Artifacts
       run: |
-        cp build/Release/luvi.exe         build/Release/luvi-${{ env.ARTIFACT }}.exe
-        cp build/Release/luvi.lib         build/Release/luvi-${{ env.ARTIFACT }}.lib
-        cp build/Release/luvi_renamed.lib build/Release/luvi-${{ env.ARTIFACT }}_renamed.lib
+        cp build/Release/luvi.exe         build/luvi-${{ env.ARTIFACT }}.exe
+        cp build/Release/luvi.lib         build/luvi-${{ env.ARTIFACT }}.lib
+        cp build/Release/luvi_renamed.lib build/luvi-${{ env.ARTIFACT }}_renamed.lib
 
     - name: Publish Artifacts
       uses: actions/upload-artifact@v4
