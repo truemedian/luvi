@@ -34,7 +34,7 @@ jobs:
         LUA=${{ matrix.lua_engine }}
         BUILD=${{ matrix.build_type }}
 
-        echo "ARTIFACT=$OS-$ARCH-${LUA,,}-$BUILD" >> $GITHUB_ENV
+        echo "ARTIFACT=$OS-$ARCH-$(echo $LUA | awk '{print tolower($0)}')-$BUILD" >> $GITHUB_ENV
 
     - name: Rename Artifacts
       run: |
@@ -75,7 +75,7 @@ jobs:
     - name: Fetch System Name
       run: |
         OS=$(uname -s)
-        ARCH=$(uname -m)
+        ARCH=${{ matrix.arch }}
         LUA=${{ matrix.lua_engine }}
         BUILD=${{ matrix.build_type }}
         if [ ${{ matrix.libc }} == "glibc" ]; then
