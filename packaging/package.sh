@@ -1,9 +1,9 @@
 failed=
 function delete() {
-    files=$(ls -1A $1 2>/dev/null | tr '\n' ' ')
+    files=$(find $1 2>/dev/null)
     if [ ! -z "$files" ]; then
         echo "delete $files"
-        rm -rf $files
+        rm -rf $1
     else
         failed="$failed $1"
     fi
@@ -43,7 +43,7 @@ delete deps/lua-openssl/appveyor.yml             # appveyor configuration
 delete deps/lua-openssl/cmake                    # cmake modules, vendored into cmake
 delete deps/lua-openssl/CMakeLists.txt           # build system, vendored into cmake
 delete deps/lua-openssl/config.win               # build system, vendored into cmake
-delete deps/lua-openssl/deps/auxiliar/.git/      # git tracking information
+delete deps/lua-openssl/deps/auxiliar/.git       # git tracking information
 delete deps/lua-openssl/deps/auxiliar/.gitignore # git ignore rules
 delete deps/lua-openssl/deps/lua-compat          # vendored dependency, already present in luv
 delete deps/lua-openssl/Makefile                 # build system, vendored into cmake
@@ -98,7 +98,7 @@ delete deps/luv/.github       # github actions workflows
 delete deps/luv/examples      # example code
 delete deps/luv/lib           # test scripts
 delete deps/luv/rockspecs     # luarocks configuration
-delete deps/luv/test          # test scripts
+delete deps/luv/tests         # test scripts
 delete deps/luv/.clang-format # clang format configuration
 delete deps/luv/.clangd       # clangd configuration
 delete deps/luv/.gitignore    # git ignore rules
