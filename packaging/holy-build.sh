@@ -8,7 +8,7 @@ LUA_ENGINE=$2
 ARCH=$3
 
 rm -f /etc/yum.repos.d/phusion_centos-6-scl-i386.repo
-yum install -y cmake3-*.$ARCH
+yum install -y cmake3-*.x86_64
 
 make $BUILD_TYPE CMAKE=cmake3 WITH_LUA_ENGINE=$LUA_ENGINE
 make             CMAKE=cmake3
