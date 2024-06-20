@@ -82,7 +82,6 @@ delete deps/zlib/Makefile.in      # build system data
 delete deps/zlib/zconf.h.in       # build system data
 delete deps/zlib/zlib.pc.cmakein  # build system data
 delete deps/zlib/zlib.pc.in       # build system data
-delete deps/zlib/zconf.h.included # build system data
 delete deps/zlib/treebuild.xml    # build system data
 
 if [ ! -z "$failed" ]; then
