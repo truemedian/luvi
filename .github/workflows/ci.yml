@@ -11,8 +11,6 @@ jobs:
         os: [macos-13, macos-latest]
         build_type: [tiny, regular]
         lua_engine: [LuaJIT, Lua]
-    env:
-      ARTIFACT: ${{ matrix.lua_engine }}-${{ matrix.build_type }}
 
     steps:
     - uses: actions/checkout@v4
@@ -31,7 +29,12 @@ jobs:
 
     - name: Fetch System Name
       run: |
-        echo "ARTIFACT=$(uname -s)-$(uname -m)-$ARTIFACT" >> $GITHUB_ENV
+        OS=$(uname -s)
+        ARCH=$(uname -m)
+        LUA=${{ matrix.lua_engine }}
+        BUILD=${{ matrix.build_type }}
+
+        echo "ARTIFACT=$OS-$ARCH-${LUA,,}-$BUILD" >> $GITHUB_ENV
 
     - name: Rename Artifacts
       run: |
@@ -51,10 +54,8 @@ jobs:
       matrix:
         build_type: [tiny, regular]
         lua_engine: [LuaJIT, Lua]
-        arch: [x86_64, i686]
+        arch: [x86_64, i686, aarch64]
         libc: [glibc, musl]
-    env:
-      ARTIFACT: Linux-${{ matrix.arch }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}-${{ matrix.libc }}
 
     steps:
     - uses: actions/checkout@v4
@@ -65,6 +66,20 @@ jobs:
     - name: Build
       run: |
         bash packaging/linux-run.sh ${{ matrix.libc }} ${{ matrix.arch }} ${{ matrix.build_type }} ${{ matrix.lua_engine }}
+
+    - name: Fetch System Name
+      run: |
+        OS=$(uname -s)
+        ARCH=$(uname -m)
+        LUA=${{ matrix.lua_engine }}
+        BUILD=${{ matrix.build_type }}
+        if [ ${{ matrix.libc }} == "glibc" ]; then
+          LIBC=""
+        else
+          LIBC=-${{ matrix.libc }}
+        fi
+
+        echo "ARTIFACT=$OS-$ARCH-${LUA,,}-$BUILD$LIBC" >> $GITHUB_ENV
 
     - name: Rename Artifacts
       run: |
@@ -85,8 +100,6 @@ jobs:
         build_type: [tiny, regular]
         lua_engine: [LuaJIT, Lua]
         msystem: [mingw32, mingw64]
-    env:
-      ARTIFACT: Windows-${{ matrix.msystem }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
 
     steps:
     - name: 'Setup MSYS2'
@@ -120,6 +133,14 @@ jobs:
       shell: msys2 {0}
       run: mingw32-make test
 
+    - name: Fetch System Name
+      run: |
+        $MSYSTEM="${{ matrix.msystem }}"
+        $LUA="${{ matrix.lua_engine }}"
+        $BUILD="${{ matrix.build_type }}"
+
+        echo "ARTIFACT=Windows-$MSYSTEM-$($LUA.ToLower())-$BUILD" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
     - name: Rename Artifacts
       run: |
         cp build/luvi.exe luvi-${{ env.ARTIFACT }}.exe
@@ -137,9 +158,7 @@ jobs:
       matrix:
         build_type: [tiny, regular]
         lua_engine: [LuaJIT, Lua]
-        arch: [AMD64, X86]
-    env:
-      ARTIFACT: Windows-msvc-${{ matrix.arch }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
+        arch: [amd64, x86]
 
     steps:
     - name: Setup MSVC Developer Prompt
@@ -166,6 +185,14 @@ jobs:
 
     - name: Test
       run: nmake test
+
+    - name: Fetch System Name
+      run: |
+        $ARCH="${{ matrix.arch }}"
+        $LUA="${{ matrix.lua_engine }}"
+        $BUILD="${{ matrix.build_type }}"
+
+        echo "ARTIFACT=Windows-$ARCH-$($LUA.ToLower())-$BUILD" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
     - name: Rename Artifacts
       run: |
