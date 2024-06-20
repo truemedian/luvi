@@ -3,7 +3,7 @@ function delete() {
     files=$(find $1 2>/dev/null | tr '\n' ' ')
     if [ ! -z "$files" ]; then
         echo "delete $files"
-        # rm -rf $files
+        rm -rf $files
     else
         failed="$failed $1"
     fi
