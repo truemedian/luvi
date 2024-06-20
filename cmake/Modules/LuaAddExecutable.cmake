@@ -9,10 +9,9 @@
 
 macro(LUA_ADD_EXECUTABLE target)
   set(LUA_COMMAND luajit)
-  set(LUA_COMMAND_ARGS -b)
+  set(LUA_COMMAND_ARGS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/luac.lua")
   if (WITH_LUA_ENGINE STREQUAL Lua)
     set(LUA_COMMAND lua)
-    set(LUA_COMMAND_ARGS "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/luac.lua")
   endif ()
 
   if ($ENV{LUA_PATH})

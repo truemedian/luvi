@@ -57,7 +57,6 @@ option(WithSharedZLIB "Shared or Static ZLIB" OFF)
 
 find_package(Threads)
 set (LUVI_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
-set (EXTRA_LIBS)
 
 # Luvi supports two way to compile against Luv: as a shared library, or compiled
 # as a static library. When compiling against a shared libluv, Luvi assumes that
@@ -149,14 +148,17 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
 endif()
 
 if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
-  set(EXTRA_LIBS ${EXTRA_LIBS} rt)
+  set(list APPEND LUVI_LIBRARIES rt)
 endif()
 
 target_link_libraries(luvi ${LUVI_LIBRARIES} ${EXTRA_LIBS})
 set_target_properties(luvi PROPERTIES ENABLE_EXPORTS ON)
 
 target_compile_definitions(luvi PRIVATE LUVI_VERSION="${LUVI_VERSION}")
-target_compile_definitions(luvi PRIVATE ${EXTRA_DEFINITIONS}) # Add any extra definitions, like the WITH_{LIB} defines
+target_compile_definitions(luvi PRIVATE ${LUVI_DEFINITIONS}) # Add any extra definitions, like the WITH_{LIB} defines
+
+message("-- LUVI_LIBRARIES: ${LUVI_LIBRARIES}")
+message("-- LUVI_DEFINITIONS: ${LUVI_DEFINITIONS}")
 
 ###############################################################################
 ## Installation Targets
