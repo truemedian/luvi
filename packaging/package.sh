@@ -1,6 +1,6 @@
 failed=
 function delete() {
-    files=$(ls -A $1 2>/dev/null)
+    files=$(ls -1A $1 2>/dev/null | tr '\n' ' ')
     if [ ! -z "$files" ]; then
         echo "delete $files"
         rm -rf $files
@@ -17,13 +17,13 @@ delete .gitmodules    # git submodule remotes
 delete lgtm.yml       # LGTM configuration
 delete packaging/     # packaging scripts
 
-delete deps/lpeg/.git/    # git tracking information
+delete deps/lpeg/.git     # git tracking information
 delete deps/lpeg/*.gif    # documentation
 delete deps/lpeg/*.html   # documentation
 delete deps/lpeg/makefile # build system, vendored into cmake
 delete deps/lpeg/test.lua # test script
 
-delete deps/lrexlib/.git/         # git tracking information
+delete deps/lrexlib/.git          # git tracking information
 delete deps/lrexlib/.gitignore    # git ignore rules
 delete deps/lrexlib/*.lua         # rockspec generation
 delete deps/lrexlib/ChangeLog.old # old changelog
@@ -32,7 +32,7 @@ delete deps/lrexlib/Makefile      # build system, vendored into cmake
 delete deps/lrexlib/test/         # test scripts
 delete deps/lrexlib/windows/      # windows build scripts, vendored into cmake
 
-delete deps/lua-openssl/.git/                    # git tracking information
+delete deps/lua-openssl/.git                     # git tracking information
 delete deps/lua-openssl/.gitattributes           # git file attributes
 delete deps/lua-openssl/.github/                 # github actions workflows
 delete deps/lua-openssl/.gitignore               # git ignore rules
@@ -51,7 +51,7 @@ delete deps/lua-openssl/Makefile.win             # build system, vendored into c
 delete deps/lua-openssl/src/config.ld            # ldoc configuration
 delete deps/lua-openssl/test                     # test scripts
 
-delete deps/lua-zlib/.git/          # git tracking information
+delete deps/lua-zlib/.git           # git tracking information
 delete deps/lua-zlib/.gitattributes # git file attributes
 delete deps/lua-zlib/.github        # github actions workflows
 delete deps/lua-zlib/.luacheckrc    # luacheck configuration
@@ -64,7 +64,7 @@ delete deps/lua-zlib/CMakeLists.txt # build system, vendored into cmake
 delete deps/lua-zlib/Makefile       # build system, vendored into cmake
 delete deps/lua-zlib/rockspecs      # luarocks configuration
 
-delete deps/zlib/.git/            # git tracking information
+delete deps/zlib/.git             # git tracking information
 delete deps/zlib/.github          # github actions workflows
 delete deps/zlib/.gitignore       # git ignore rules
 delete deps/zlib/amiga            # amiga build scripts
@@ -91,6 +91,25 @@ delete deps/zlib/zlib.3           # documentation
 delete deps/zlib/zlib.3.pdf       # documentation
 delete deps/zlib/zlib.pc.cmakein  # build system data
 delete deps/zlib/zlib.pc.in       # build system data
+
+delete deps/luv/.git          # git tracking information
+delete deps/luv/.ci           # github actions workflows
+delete deps/luv/.github       # github actions workflows
+delete deps/luv/examples      # example code
+delete deps/luv/lib           # test scripts
+delete deps/luv/rockspecs     # luarocks configuration
+delete deps/luv/test          # test scripts
+delete deps/luv/.clang-format # clang format configuration
+delete deps/luv/.clangd       # clangd configuration
+delete deps/luv/.gitignore    # git ignore rules
+delete deps/luv/.gitmodules   # git submodule remotes
+delete deps/luv/.editorconfig # editor configuration
+delete deps/luv/Makefile      # build system, not used
+delete deps/luv/msvcbuild.bat # build system, not used
+delete deps/luv/libluv.pc.in  # build system data
+delete deps/luv/docs.md       # documentation
+delete deps/luv/*.rockspec    # luarocks configuration
+delete deps/luv/appveyor.yml  # appveyor configuration
 
 if [ ! -z "$failed" ]; then
     echo "Failed to delete the following directories: $failed"
