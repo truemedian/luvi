@@ -10,7 +10,7 @@ LUA_ENGINE=$3
 NPROCS=$(grep -c ^processor /proc/cpuinfo)
 
 if which yum; then
-    if [ "$ARCH" == "x86_64" ]; then
+    if [ "$ARCH" != "i686" ]; then
         yum install -y epel-release
         yum install -y cmake3
     else # the version of cmake install is too old, and cmake3 is not available for i386
