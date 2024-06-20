@@ -54,7 +54,7 @@ jobs:
         arch: [x86_64, i686]
         libc: [glibc, musl]
     env:
-      ARTIFACT: Linux-${{ matrix.arch }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}
+      ARTIFACT: Linux-${{ matrix.arch }}-${{ matrix.lua_engine }}-${{ matrix.build_type }}-${{ matrix.libc }}
 
     steps:
     - uses: actions/checkout@v4

@@ -14,6 +14,11 @@ else
     container_host="quay.io/pypa/musllinux_1_2_$ARCH"
 fi
 
+# try to pull the image 3 times, because quay.io sometimes fails
+for i in 1 2 3; do
+    docker pull $container_host && break
+done
+
 docker run --rm \
     -v "$GITHUB_WORKSPACE":"/github/workspace" \
     -w /github/workspace \
