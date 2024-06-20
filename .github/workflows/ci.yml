@@ -212,9 +212,29 @@ jobs:
         path: |
           build/luvi-${{ env.ARTIFACT }}*
 
+  package-source:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: recursive
+
+    - name: Package Source
+      run: |
+        git describe --tags > VERSION
+        touch deps/lub/deps/luajit/src/luajit_relver.txt
+
+        tar cvJf --exclude='.git*' luvi-source.tar.xz .
+
+    - name: Publish Source
+      uses: actions/upload-artifact@v4
+      with:
+        name: luvi-source
+        path: luvi-source.tar.xz
+
   publish:
-    # if: startsWith(github.ref, 'refs/tags/')
-    needs: [build-posix, build-linux, build-mingw, build-msvc]
+    needs: [build-posix, build-linux, build-mingw, build-msvc, package-source]
     runs-on: ubuntu-latest
     steps:
     - name: Download Artifacts
@@ -223,8 +243,14 @@ jobs:
         path: download
         merge-multiple: true
 
-    - name: Publish Release
+    - name: Publish Artifact
       uses: actions/upload-artifact@v4
       with:
         name: artifacts
         path: download
+
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: download/*
