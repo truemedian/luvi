@@ -225,16 +225,13 @@ jobs:
         git describe --tags > VERSION
         touch deps/luv/deps/luajit/src/luajit_relver.txt
 
-        tar -cvf /tmp/luvi-source.tar --exclude-vcs --exclude 'git*' .
-        xz -z /tmp/luvi-source.tar
-
-        mv /tmp/luvi-source.tar.xz luvi-source.tar.xz
+        tar -czvf /tmp/luvi-source.tar.gz --exclude-vcs --exclude 'git*' .
 
     - name: Publish Source
       uses: actions/upload-artifact@v4
       with:
         name: luvi-source
-        path: luvi-source.tar.xz
+        path: /tmp/luvi-source.tar.gz
 
   publish:
     needs: [build-posix, build-linux, build-mingw, build-msvc, package-source]
