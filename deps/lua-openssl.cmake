@@ -63,7 +63,6 @@ add_library(lua_openssl STATIC
 
 target_include_directories(lua_openssl PUBLIC ${OPENSSL_INCLUDE_DIR})
 target_link_libraries(lua_openssl ${OPENSSL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-add_dependencies(lua_openssl openssl)
 
 list(APPEND LUVI_LIBRARIES lua_openssl ${OPENSSL_LIBRARIES})
 list(APPEND LUVI_DEFINITIONS WITH_OPENSSL=1)

@@ -14,6 +14,7 @@ jobs:
     env:
       MAKEFLAGS: -j4
       NPROCS: 4
+      CFLAGS: -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib -Wno-nullability-completeness
 
     steps:
     - uses: actions/checkout@v4
@@ -22,7 +23,8 @@ jobs:
         submodules: recursive
 
     - name: Configure
-      run: make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }}
+      run: |
+        make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }}
 
     - name: Build
       run: make
