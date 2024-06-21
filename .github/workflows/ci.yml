@@ -15,6 +15,9 @@ jobs:
       MAKEFLAGS: -j4
       NPROCS: 4
       CFLAGS: -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib -Wno-nullability-completeness
+    permissions:
+      id-token: write
+      attestations: write
 
     steps:
     - uses: actions/checkout@v4
@@ -45,6 +48,14 @@ jobs:
       run: |
         cp build/luvi luvi-${{ env.ARTIFACT }}
 
+    - name: Generate Attestation
+      uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: luvi-${{ env.ARTIFACT }}
+
+    - name: Clear Summary
+      run: rm $GITHUB_STEP_SUMMARY
+
     - name: Publish Artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -64,6 +75,9 @@ jobs:
     env:
       MAKEFLAGS: -j4
       NPROCS: 4
+    permissions:
+      id-token: write
+      attestations: write
 
     steps:
     - uses: actions/checkout@v4
@@ -98,6 +112,14 @@ jobs:
       run: |
         cp build/luvi luvi-${{ env.ARTIFACT }}
 
+    - name: Generate Attestation
+      uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: luvi-${{ env.ARTIFACT }}
+
+    - name: Clear Summary
+      run: rm $GITHUB_STEP_SUMMARY
+
     - name: Publish Artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -116,6 +138,9 @@ jobs:
     env:
       MAKEFLAGS: -j4
       NPROCS: 4
+    permissions:
+      id-token: write
+      attestations: write
 
     steps:
     - name: 'Setup MSYS2'
@@ -161,11 +186,20 @@ jobs:
       run: |
         cp build/luvi.exe luvi-${{ env.ARTIFACT }}.exe
 
+    - name: Generate Attestation
+      uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: luvi-${{ env.ARTIFACT }}.exe
+
+    - name: Clear Summary
+      run: rm $env:GITHUB_STEP_SUMMARY
+
     - name: Publish Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.ARTIFACT }}
         path: luvi-${{ env.ARTIFACT }}.exe
+
 
   build-msvc:
     runs-on: windows-latest
@@ -175,6 +209,9 @@ jobs:
         build_type: [tiny, regular]
         lua_engine: [LuaJIT, Lua]
         arch: [amd64, x86]
+    permissions:
+      id-token: write
+      attestations: write
 
     steps:
     - name: Setup MSVC Developer Prompt
@@ -215,6 +252,14 @@ jobs:
         cp build/Release/luvi.exe         build/luvi-${{ env.ARTIFACT }}.exe
         cp build/Release/luvi.lib         build/luvi-${{ env.ARTIFACT }}.lib
         cp build/Release/luvi_renamed.lib build/luvi-${{ env.ARTIFACT }}_renamed.lib
+
+    - name: Generate Attestation
+      uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: build/luvi-${{ env.ARTIFACT }}*
+
+    - name: Clear Summary
+      run: rm $env:GITHUB_STEP_SUMMARY
 
     - name: Publish Artifacts
       uses: actions/upload-artifact@v4
