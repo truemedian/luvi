@@ -15,6 +15,9 @@ jobs:
       MAKEFLAGS: -j4
       NPROCS: 4
       CFLAGS: -I/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -L/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib -Wno-nullability-completeness
+    permissions:
+      id-token: write
+      attestations: write
 
     steps:
     - uses: actions/checkout@v4
@@ -52,6 +55,11 @@ jobs:
         path: |
           luvi-${{ env.ARTIFACT }}
 
+    - name: Generate Attestation
+      uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: luvi-${{ env.ARTIFACT }}
+
   build-linux:
     runs-on: ubuntu-latest
     strategy:
@@ -64,6 +72,9 @@ jobs:
     env:
       MAKEFLAGS: -j4
       NPROCS: 4
+    permissions:
+      id-token: write
+      attestations: write
 
     steps:
     - uses: actions/checkout@v4
@@ -105,6 +116,11 @@ jobs:
         path: |
           luvi-${{ env.ARTIFACT }}
 
+    - name: Generate Attestation
+      uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: luvi-${{ env.ARTIFACT }}
+
   build-mingw:
     runs-on: windows-latest
     strategy:
@@ -116,6 +132,9 @@ jobs:
     env:
       MAKEFLAGS: -j4
       NPROCS: 4
+    permissions:
+      id-token: write
+      attestations: write
 
     steps:
     - name: 'Setup MSYS2'
@@ -167,6 +186,11 @@ jobs:
         name: ${{ env.ARTIFACT }}
         path: luvi-${{ env.ARTIFACT }}.exe
 
+    - name: Generate Attestation
+      uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: luvi-${{ env.ARTIFACT }}.exe
+
   build-msvc:
     runs-on: windows-latest
     strategy:
@@ -175,6 +199,9 @@ jobs:
         build_type: [tiny, regular]
         lua_engine: [LuaJIT, Lua]
         arch: [amd64, x86]
+    permissions:
+      id-token: write
+      attestations: write
 
     steps:
     - name: Setup MSVC Developer Prompt
@@ -222,6 +249,11 @@ jobs:
         name: ${{ env.ARTIFACT }}
         path: |
           build/luvi-${{ env.ARTIFACT }}*
+
+    - name: Generate Attestation
+      uses: actions/attest-build-provenance@v1
+      with:
+        subject-path: build/luvi-${{ env.ARTIFACT }}*
 
   package-source:
     runs-on: ubuntu-latest
