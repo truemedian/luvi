@@ -170,7 +170,7 @@ jobs:
 
     - name: Test
       shell: msys2 {0}
-      run: mingw32-make test
+      run: make test
 
     - name: Fetch System Name
       run: |
