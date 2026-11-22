@@ -8,7 +8,7 @@ ARCH=$2
 shift 2
 
 if [ x$LIBC == xglibc ]; then
-    container_host="quay.io/pypa/manylinux2014_$ARCH"
+    container_host="quay.io/pypa/manylinux_2_28_$ARCH"
 else    
     container_host="quay.io/pypa/musllinux_1_2_$ARCH"
 fi
