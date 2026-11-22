@@ -162,11 +162,11 @@ jobs:
 
     - name: Configure
       shell: msys2 {0}
-      run: mingw32-make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }} GENERATOR="MinGW Makefiles"
+      run: make ${{ matrix.build_type }} WITH_LUA_ENGINE=${{ matrix.lua_engine }} GENERATOR="MinGW Makefiles"
 
     - name: Build
       shell: msys2 {0}
-      run: mingw32-make
+      run: make
 
     - name: Test
       shell: msys2 {0}
