@@ -22,4 +22,5 @@ docker run --rm \
     -v "$GITHUB_WORKSPACE":"/github/workspace" \
     -w /github/workspace \
     $container_host \
+    --network host \
     /bin/bash packaging/linux-build.sh $ARCH $@
